@@ -23,6 +23,7 @@
 
 use Cake\Routing\Route\DashedRoute;
 use Cake\Routing\RouteBuilder;
+use App\Middleware\AuthenticationMiddleware;
 
 /*
  * The default class to use for all routes
@@ -88,9 +89,9 @@ $routes->setRouteClass(DashedRoute::class);
  * });
  * ```
  */
-$routes->connect('/',['controller' => 'Test','action' => 'test']);
-$routes->connect('/test',['controller' => 'Test','action' => 'test']);
 
+
+$routes->registerMiddleware('authorisation',new AuthenticationMiddleware());
 
 $routes->scope('/api/v1/auth/',['controller' => 'Users'],function (RouteBuilder $builder) {
     $builder->setExtensions(['json']);
@@ -98,11 +99,13 @@ $routes->scope('/api/v1/auth/',['controller' => 'Users'],function (RouteBuilder 
     $builder->connect('/login',['action'=> 'loginUser'] );//,'_method' => 'POST'
 });
 $routes->scope('/api/v1/',['controller' => 'Products'],function (RouteBuilder $builder){
+    $builder->applyMiddleware('authorisation');
     $builder->setExtensions(['json']);
     $builder->connect('/product',['action' => 'productAction']);
     $builder->connect('/product/{id}',['action' => 'productDetailAction']);
 });
 $routes->scope('/api/v1/',['controller' => 'ShoppingLists'],function (RouteBuilder $builder){
+    $builder->applyMiddleware('authorisation');
     $builder->setExtensions(['json']);
     $builder->options('/shoppingList',['action' => 'optionRequest']);
     $builder->get('/shoppingList',['action' => 'getShoppingLists']);
@@ -115,6 +118,7 @@ $routes->scope('/api/v1/',['controller' => 'ShoppingLists'],function (RouteBuild
     $builder->get('/shoppingList/{id}/mapping',['action' => 'getShoppingListMapping']);
 });
 $routes->scope('/api/v1/',['controller' => 'Recipes'],function (RouteBuilder $builder){
+    $builder->applyMiddleware('authorisation');
     $builder->options('/recipe',['action' => 'createRecipeOptionRequest']);
     $builder->post('/recipe',['action' => 'createRecipe']);
     $builder->get('/recipe',['action' => 'getRecipeList']);
@@ -129,20 +133,24 @@ $routes->scope('/api/v1/',['controller' => 'Recipes'],function (RouteBuilder $bu
     $builder->put('/recipe/{id}/step/{stepId}',['action' => 'updateRecipeStep']);
 });
 $routes->scope('/api/v1/',['controller' => 'magazines'],function (RouteBuilder $builder){
+    $builder->applyMiddleware('authorisation');
     $builder->get('magazines/list',['action' => 'getMagazineList']);
     $builder->options('magazines/list',['action' => 'optionsRequest']);
     $builder->put('magazines/{id}',['action' => 'updateMagazineData']);
     
 });
 $routes->scope('/api/v1/',['controller' => 'wikiPages'],function (RouteBuilder $builder){
-    $builder->options('/api/v1/wiki/page',['action' => 'optionsRequest']);
-    $builder->post('/api/v1/wiki/page',['action' => 'createWikiPage']);
-    $builder->delete('/api/v1/wiki/page/{id}',['action' => 'deleteWikiPage']);
+    $builder->applyMiddleware('authorisation');
+    $builder->options('wiki/page',['action' => 'optionsRequest']);
+    $builder->post('wiki/page',['action' => 'createWikiPage']);
+    $builder->delete('wiki/page/{id}',['action' => 'deleteWikiPage']);
     $builder->get('wiki/page/{id}',['action' => 'getWikiPage']);
     $builder->get('wiki/page',['action' => 'getWikiPages']);
-    $builder->get('wiki/page/{id}',['action' => 'updateWikiPage']);
+    $builder->put('wiki/page/{id}',['action' => 'updateWikiPage']);
+    $builder->options('wiki/page/{id}',['action' => 'optionsRequest']);
 });
 $routes->scope('/api/v1/',['controller' => 'settings'],function (RouteBuilder $builder){
+    $builder->applyMiddleware('authorisation');
     $builder->get('/setting',['action' => 'getSettings']);
     $builder->options('/setting',['action' => 'optionsRequest']);
     $builder->put('/setting',['action' => 'updateSettings']);

@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Model\Entity\Users;
 use App\Model\Table\UsersTable;
 use Firebase\JWT\JWT;
+use Cake\Core\Configure;
 
 class UsersController extends AppController{
     protected $modelClass = 'Users';
@@ -62,14 +63,22 @@ class UsersController extends AppController{
             return $this->response;
         }
 
-        $sJwt = $this->JwtHandle->generateJwtToken($aUsers[0]);
-        //$this->response = $this->response->withHeader('Authorization','Bearer '.$sJwt);
-
-        $this->response = $this->response->withStringBody(json_encode([
-            'success' => true,
-            'token' => $sJwt
-        ]));
-        return $this->response;
+        if(Configure::read('AuthenticationMethod')=== 'session'){
+            $this->request->getSession()->write('user.userId',$aUsers[0]->id);
+            $this->request->getSession()->write('user.isAdmin',$aUsers[0]->is_admin);
+            $this->request->getSession()->write('user.userName',$aUsers[0]->user_name);
+            return $this->response;
+        } else {
+            $sJwt = $this->JwtHandle->generateJwtToken($aUsers[0]);
+            //$this->response = $this->response->withHeader('Authorization','Bearer '.$sJwt);
+    
+            $this->response = $this->response->withStringBody(json_encode([
+                'success' => true,
+                'token' => $sJwt
+            ]));
+            return $this->response;
+        }
+        
 
     }
 }
