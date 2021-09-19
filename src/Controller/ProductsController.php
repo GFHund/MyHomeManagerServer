@@ -33,6 +33,7 @@ class ProductsController extends AppController{
         $sProductTitle = $this->request->getQuery('productTitle','');
 
         $products = $this->Products->find('all');
+        $products->order('product_name');
         if(!empty($sProductTitle)){
             $products->where(['product_name LIKE' => $sProductTitle."%"]);
         }
