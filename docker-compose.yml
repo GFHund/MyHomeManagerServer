@@ -3,18 +3,18 @@ version: '3'
 services:
  my_home_manager_cake_be_apache:
   container_name: my_home_manager_cake_be_apache
-  image: bitnami/apache:2.4
+  image: httpd:2.4.49-buster
   networks:
    - myHomeNet
   ports:
-   - 8080:8080
+   - 8080:80
   environment:
    DATABASE_URL: db
   depends_on:
    - db_cake
   volumes:
-   - .:/app
-   - ./apacheConfig/apacheConf.conf:/vhosts/myapp.conf:ro
+   - .:/usr/local/apache2/htdocs
+   - ./apacheConfig/apacheConf.conf:/usr/local/apache2/conf/httpd.conf:ro
  my_home_manager_cake_php:
   container_name: my_home_manager_cake_php
   build: ./
@@ -27,7 +27,7 @@ services:
   networks:
    - myHomeNet
  db_cake:
-  image: mariadb
+  image: jsurf/rpi-mariadb:latest
   environment:
    MYSQL_ROOT_PASSWORD: 123456
    MYSQL_DATABASE: my-home-manager
