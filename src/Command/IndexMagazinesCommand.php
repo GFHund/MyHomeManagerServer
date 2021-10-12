@@ -83,7 +83,7 @@ class IndexMagazinesCommand extends Command
             }
             $aFiles = ftp_nlist($oFtpHandle,'.');
             foreach($aFiles as $sFile){
-                $this->insertNotIndexedFiles($sFile,$io);
+                $this->insertNotIndexedFiles($sFile,$url,$io);
             }
             ftp_close($oFtpHandle);
         }
@@ -101,19 +101,24 @@ class IndexMagazinesCommand extends Command
         }
         return $settingVal[0]['setting_value'];
     }
-    protected function insertNotIndexedFiles(string $sFilename,ConsoleIo $io){
+    protected function insertNotIndexedFiles(string $sFilename,string $url,ConsoleIo $io){
         $magazine = $this->Magazines->find('all')->where(['uri =' => $sFilename]);
         $numResults = $magazine->count();
         if($numResults <= 0){
             $newMagazine = $this->Magazines->newEmptyEntity();
             $newMagazine->id = Text::uuid();
             $newMagazine->title = $sFilename;
-            $newMagazine->uri = $sFilename;
+            $newMagazine->uri = $url.'/index.php?ctName='.$sFilename;
             $newMagazine->topics = '';
             if($this->Magazines->save($newMagazine)){
                 return;
             }
             $io->error('Could not save entity');
+        } else {
+            foreach($magazine->all() as $mag){
+                $mag->uri = $url.'/index.php?ctName='.$sFilename;
+                $this->Magazines->save($mag);
+            }
         }
     }
 }
