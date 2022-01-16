@@ -137,7 +137,7 @@ $routes->scope('/api/v1/',['controller' => 'magazines'],function (RouteBuilder $
     $builder->get('magazines/list',['action' => 'getMagazineList']);
     $builder->options('magazines/list',['action' => 'optionsRequest']);
     $builder->put('magazines/{id}',['action' => 'updateMagazineData']);
-    
+    $builder->post('magazines/index',['action' => 'indexMagazines']);
 });
 $routes->scope('/api/v1/',['controller' => 'wikiPages'],function (RouteBuilder $builder){
     $builder->applyMiddleware('authorisation');
