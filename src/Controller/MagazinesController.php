@@ -67,7 +67,9 @@ class MagazinesController extends AppController{
         $sFtpUsername = $this->getSetting('magazine_indexer_ftp_username');
         $sFtpPassword = $this->getSetting('magazine_indexer_ftp_password');
         $sFtpDirectory = $this->getSetting('magazine_indexer_ftp_directory');
-        $this->MagazineIndex->indexMagazines($sFtpAddress,$sFtpUsername,$sFtpPassword,$sFtpDirectory);
+        $iCountFiles = $this->MagazineIndex->indexMagazines($sFtpAddress,$sFtpUsername,$sFtpPassword,$sFtpDirectory);
+        $this->response = $this->response->withStringBody(json_encode(['read' => $iCountFiles]));
+        return $this->response;
     }
 
     protected function getSetting(string $technicalName):?string{
