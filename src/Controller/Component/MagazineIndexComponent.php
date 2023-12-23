@@ -3,9 +3,10 @@ declare(strict_types=1);
 namespace App\Controller\Component;
 use Cake\Controller\Component;
 use Cake\Controller\ComponentRegistry;
+use Cake\Utility\Text;
 
 class MagazineIndexComponent extends Component{
-    
+
     protected $modelClass = 'Magazines';
 
     public function indexMagazines(string $sFtpAddress,string $sFtpUsername, string $sFtpPassword,string $sFtpDirectory){
@@ -14,7 +15,8 @@ class MagazineIndexComponent extends Component{
             $io->error('Error at connecting to ftp');
             return;
         }
-        $io->out('username: '.$sFtpUsername.' password: '.$sFtpPassword);
+
+        $iCountFiles = 0;
         if(ftp_login($oFtpHandle,$sFtpUsername,$sFtpPassword)){
             ftp_pasv($oFtpHandle,true);
             $changeResult = ftp_chdir($oFtpHandle,$sFtpDirectory);
@@ -30,7 +32,7 @@ class MagazineIndexComponent extends Component{
             ftp_close($oFtpHandle);
         }
     }
-    
+
     protected function insertNotIndexedFiles(string $sFilename,string $url,ConsoleIo $io){
         $magazine = $this->Magazines->find('all')->where(['uri =' => $sFilename]);
         $numResults = $magazine->count();

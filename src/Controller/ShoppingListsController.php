@@ -12,7 +12,7 @@ class ShoppingListsController extends AppController{
     }
 
     public function getShoppingLists(){
-        $shoppingLists = $this->ShoppingLists->find('all');
+        $shoppingLists = $this->ShoppingLists->find('all')->order(['title' => 'DESC']);
         $ret = [];
         foreach($shoppingLists as $shoppingList){
             $ret[] = ['id' => $shoppingList->id,'title' => $shoppingList->title];

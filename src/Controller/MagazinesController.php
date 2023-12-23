@@ -7,6 +7,11 @@ use Cake\Utility\Text;
 use Cake\Datasource\ConnectionManager;
 
 class MagazinesController extends AppController{
+    public function initialize():void{
+        parent::initialize();
+        $this->loadComponent('MagazineIndex');
+    }
+
     public function optionsRequest(){
         return $this->response;
     }
@@ -55,5 +60,29 @@ class MagazinesController extends AppController{
             $this->response = $this->response->withStringBody($ret);
             return $this->response;
         }
+    }
+
+    public function indexMagazines(){
+        $sFtpAddress = $this->getSetting('magazine_indexer_ftp_address');
+        $sFtpUsername = $this->getSetting('magazine_indexer_ftp_username');
+        $sFtpPassword = $this->getSetting('magazine_indexer_ftp_password');
+        $sFtpDirectory = $this->getSetting('magazine_indexer_ftp_directory');
+        $iCountFiles = $this->MagazineIndex->indexMagazines($sFtpAddress,$sFtpUsername,$sFtpPassword,$sFtpDirectory);
+        $this->response = $this->response->withStringBody(json_encode(['read' => $iCountFiles]));
+        return $this->response;
+    }
+
+    protected function getSetting(string $technicalName):?string{
+        $connection = ConnectionManager::get('default');
+        $settingProperty = $connection->execute('SELECT value_type, value_id FROM settings WHERE technical_name = "'.$technicalName.'"')->fetchAll('assoc');
+        if(count($settingProperty) <= 0){
+            return null;
+        }
+        $database = 'setting_'.$settingProperty[0]['value_type'];
+        $settingVal = $connection->execute('SELECT setting_value FROM '.$database.' WHERE id = "'.$settingProperty[0]['value_id'].'"')->fetchAll('assoc');
+        if(count($settingVal) <= 0){
+            return null;
+        }
+        return $settingVal[0]['setting_value'];
     }
 }
