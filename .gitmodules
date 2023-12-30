@@ -1,0 +1,3 @@
+[submodule "MyHomeManagerFe"]
+	path = MyHomeManagerFe
+	url = https://github.com/GFHund/MyHomeManagerFe.git

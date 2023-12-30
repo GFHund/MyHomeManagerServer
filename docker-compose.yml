@@ -1,6 +1,13 @@
 version: '3'
 
 services:
+ my_home_manager_fe:
+  container_name: my_home_manager_de
+  build: ./MyHomeManagerFe/
+  ports:
+   - 4000:4000
+  networks:
+   - myHomeNet
  my_home_manager_cake_be_apache:
   container_name: my_home_manager_cake_be_apache
   image: httpd:2.4.49-buster
@@ -32,7 +39,7 @@ services:
    MYSQL_ROOT_PASSWORD: 123456
    MYSQL_DATABASE: my-home-manager
   restart: always
-  networks: 
+  networks:
    - myHomeNet
  phpmyadmin_cake:
   image: phpmyadmin
@@ -40,8 +47,8 @@ services:
    - myHomeNet
   ports:
    - 8081:80
-  environment: 
+  environment:
    PMA_HOST: db_cake
 networks:
   myHomeNet:
-     
+

@@ -49,9 +49,7 @@ class Application extends BaseApplication
         // Call parent to load bootstrap from files.
         parent::bootstrap();
 
-        if (PHP_SAPI === 'cli') {
-            $this->bootstrapCli();
-        } else {
+        if (PHP_SAPI !== 'cli') {
             FactoryLocator::add(
                 'Table',
                 (new TableLocator())->allowFallbackClass(false)
@@ -80,7 +78,7 @@ class Application extends BaseApplication
         $middlewareQueue
             // Catch any exceptions in the lower layers,
             // and make an error page/response
-            ->add(new ErrorHandlerMiddleware(Configure::read('Error')))
+            ->add(new ErrorHandlerMiddleware(Configure::read('Error'),$this))
 
             // Handle plugin/theme assets like CakePHP normally does.
             ->add(new AssetMiddleware([
@@ -120,31 +118,4 @@ class Application extends BaseApplication
     public function services(ContainerInterface $container): void
     {
     }
-
-    /**
-     * Bootstrapping for CLI application.
-     *
-     * That is when running commands.
-     *
-     * @return void
-     */
-    protected function bootstrapCli(): void
-    {
-        try {
-            $this->addPlugin('Bake');
-        } catch (MissingPluginException $e) {
-            // Do not halt if the plugin is missing
-        }
-
-        $this->addPlugin('Migrations');
-
-        // Load more plugins here
-    }
-    /*
-    public function routes(RouteBuilder $routes){
-        //$routes->registerMiddleware('authorisation',new AuthenticationMiddleware());
-        parent::routes($routes);
-    }
-    */
-    
 }

@@ -15,7 +15,8 @@ use Cake\Utility\Text;
  */
 class CreateAdminUserCommand extends Command
 {
-    protected $modelClass = 'Users';
+    use \Cake\ORM\Locator\LocatorAwareTrait;
+    protected string $modelClass = 'Users';
     /**
      * Hook method for defining this command's option parser.
      *
@@ -42,6 +43,7 @@ class CreateAdminUserCommand extends Command
      */
     public function execute(Arguments $args, ConsoleIo $io)
     {
+        $users = $this->getTableLocator()->get('Users');
         $username = $args->getArgument('name');
         $password = $io->ask('You have to enter a password');
         $passwordHash = \password_hash($password,\PASSWORD_DEFAULT);
@@ -52,7 +54,7 @@ class CreateAdminUserCommand extends Command
             'password' => $passwordHash
         ]);
         /** @ToDo: Check for double names */
-        if($this->Users->save($adminUser)){
+        if($users->save($adminUser)){
             $io->success('User successfully created');
         }
         else{

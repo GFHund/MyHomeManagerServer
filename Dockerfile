@@ -1,4 +1,4 @@
-FROM php:7.4.23-fpm-bullseye
+FROM php:8.2.14-fpm-bullseye
 
 RUN apt-get update && \
 apt-get install -y zip unzip libicu-dev vim less cron && \
@@ -25,6 +25,8 @@ php -r "unlink('composer-setup.php');" &&\
 php composer.phar update &&\
 php composer.phar install
 
+#RUN vendor/bin/phpunit
+
 #RUN composer update
 
 # Abhängigkeiten werden mittels Composer installiert
@@ -32,6 +34,6 @@ php composer.phar install
 
 
 # create the database
-#RUN php bin/console doctrine:database:create 
+#RUN php bin/console doctrine:database:create
 #RUN php bin/console make:migration
 #RUN php bin/console doctrine:migrations:migrate

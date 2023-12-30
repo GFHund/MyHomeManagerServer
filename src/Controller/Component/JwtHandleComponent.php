@@ -13,13 +13,13 @@ use Cake\Datasource\Exception\RecordNotFoundException;
  */
 class JwtHandleComponent extends Component
 {
-    protected $modelClass = 'Users';
+    protected string $modelClass = 'Users';
     /**
      * Default configuration.
      *
      * @var array
      */
-    protected $_defaultConfig = [];
+    protected array $_defaultConfig = [];
 
     /**
      * @param \App\Model\Entity\Users
@@ -70,7 +70,7 @@ class JwtHandleComponent extends Component
         catch(\Exception $e){
             return false;
         }
-        
+
 
     }
 }

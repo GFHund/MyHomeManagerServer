@@ -12,7 +12,7 @@ class ProductsController extends AppController{
         parent::initialize();
         $this->loadComponent('JwtHandle');
     }
-    
+
     public function productAction(){
         if($this->request->is(['get'])){
             return $this->getProducts();
@@ -37,7 +37,7 @@ class ProductsController extends AppController{
         if(!empty($sProductTitle)){
             $products->where(['product_name LIKE' => $sProductTitle."%"]);
         }
-        
+
         $ret = [];
         foreach($products as $product){
             $ret[] = ['id' => $product->id,'productName' => $product->product_name];
@@ -77,6 +77,8 @@ class ProductsController extends AppController{
             return $this->updateProduct($id);
         } else if( $this->request->is(['delete']) ) {
             return $this->deleteProduct($id);
+        }else if($this->request->is(['options'])){
+            return $this->response;
         }else {
             $this->response = $this->response->withStatus(405);
             return $this->response;
@@ -91,7 +93,7 @@ class ProductsController extends AppController{
                     'productName' => $product->product_name
                 ])
             );
-            
+
         } catch(RecordNotFoundException $e){
             $this->response = $this->response->withStatus(404,'Product not Found');
             $ret = json_encode(['message' => 'Entity not found']);
@@ -130,6 +132,7 @@ class ProductsController extends AppController{
             /*toDo: Check of dependencys*/
             $product = $this->Products->get($id);
             $this->Products->delete($product);
+            return $this->response->withStringBody(json_encode(['success' => true]));
         } catch(RecordNotFoundException $e){
             $this->response = $this->response->withStatus(404,'Product not Found');
             $ret = json_encode(['message' => 'Entity not found']);

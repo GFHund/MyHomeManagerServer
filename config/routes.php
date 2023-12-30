@@ -26,6 +26,13 @@ use Cake\Routing\RouteBuilder;
 use App\Middleware\AuthenticationMiddleware;
 
 /*
+ * This file is loaded in the context of the `Application` class.
+  * So you can use  `$this` to reference the application class instance
+  * if required.
+ */
+return function (RouteBuilder $routes): void {
+
+/*
  * The default class to use for all routes
  *
  * The following route classes are supplied with CakePHP and are appropriate
@@ -81,10 +88,10 @@ $routes->setRouteClass(DashedRoute::class);
  * ```
  * $routes->scope('/api', function (RouteBuilder $builder) {
  *     // No $builder->applyMiddleware() here.
- *     
+ *
  *     // Parse specified extensions from URLs
  *     // $builder->setExtensions(['json', 'xml']);
- *     
+ *
  *     // Connect API actions here.
  * });
  * ```
@@ -156,3 +163,4 @@ $routes->scope('/api/v1/',['controller' => 'settings'],function (RouteBuilder $b
     $builder->options('/setting',['action' => 'optionsRequest']);
     $builder->put('/setting',['action' => 'updateSettings']);
 });
+};
