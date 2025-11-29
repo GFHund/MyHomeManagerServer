@@ -29,7 +29,8 @@ class ProductsController extends AppController{
         }
     }
 
-    public function getProducts(){
+    public function getProducts():void{
+        /** @var string */
         $sProductTitle = $this->request->getQuery('productTitle','');
 
         $products = $this->Products->find('all');

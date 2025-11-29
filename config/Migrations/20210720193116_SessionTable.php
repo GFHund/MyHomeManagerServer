@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-use Migrations\AbstractMigration;
+use Migrations\BaseMigration;
 
-class SessionTable extends AbstractMigration
+class SessionTable extends BaseMigration
 {
     /**
      * Change Method.

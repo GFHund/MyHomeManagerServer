@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-use Migrations\AbstractMigration;
 use Cake\Utility\Text;
+use Migrations\BaseMigration;
 
-class SettingsTable extends AbstractMigration
+class SettingsTable extends BaseMigration
 {
     /**
      * Change Method.
