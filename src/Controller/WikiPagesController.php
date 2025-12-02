@@ -1,15 +1,21 @@
 <?php
 namespace App\Controller;
 
+use App\Model\Table\WikiPagesTable;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Utility\Text;
 use Cake\Datasource\ConnectionManager;
+use Cake\Datasource\EntityInterface;
+use Cake\Http\Response;
 
+/**
+ * @property WikiPagesTable $WikiPages 
+ */
 class WikiPagesController extends AppController{
-    public function optionsRequest(){
+    public function optionsRequest():Response{
         return $this->response;
     }
-    public function createWikiPage(){
+    public function createWikiPage():Response{
         $sData = $this->request->getData();
         if(is_string($sData)){
             $aData = json_decode($sData,true);
@@ -17,20 +23,23 @@ class WikiPagesController extends AppController{
             $aData = $sData;
         }
         $wikiPage = $this->WikiPages->newEmptyEntity();
-        $wikiPage->id = Text::uuid();
-        $wikiPage->title = $aData['title'];
-        $wikiPage->wiki_text = $aData['text'];
+        $wikiPage->set('id',Text::uuid());
+        $wikiPage->set('title',$aData['title']);
+        $wikiPage->set('wiki_text',$aData['text']);
         if($this->WikiPages->save($wikiPage)){
-            $this->response = $this->response->withStringBody(
-                json_encode(
-                    [
-                        'id' => $wikiPage->id,
-                        'title' => $wikiPage->title,
-                        'text' => $wikiPage->wiki_text
-
-                    ]
-                )
+            $json = json_encode(
+                [
+                    'id' => $wikiPage->get('id'),
+                    'title' => $wikiPage->get('title'),
+                    'text' => $wikiPage->get('wiki_text')
+                ]
             );
+            if($json){
+                $this->response = $this->response->withStringBody(
+                    $json
+                );
+                return $this->response;
+            }
             return $this->response;
         } else {
             $this->response = $this->response->withStatus(500,'could not save data');
@@ -38,45 +47,62 @@ class WikiPagesController extends AppController{
         }
 
     }
-    public function deleteWikiPage(){}
-    public function getWikiPage(){
+    public function deleteWikiPage():void{}
+    public function getWikiPage():Response{
         $id = $this->request->getParam('id');
         try{
             $wikiPage = $this->WikiPages->get($id);
             $aRet = [
-                'id' => $wikiPage->id,
-                'title' => $wikiPage->title,
-                'text' => $wikiPage->wiki_text
+                'id' => $wikiPage->get('id'),
+                'title' => $wikiPage->get('title'),
+                'text' => $wikiPage->get('wiki_text')
             ];
             $sRet = json_encode($aRet);
-            $this->response = $this->response->withStringBody($sRet);
+            if($sRet){
+                $this->response = $this->response->withStringBody($sRet);
+                return $this->response;
+            }
             return $this->response;
         }catch(RecordNotFoundException $e){
             $this->response = $this->response->withStatus(404,'Product not Found');
             $ret = json_encode(['message' => 'Entity not found']);
-            $this->response = $this->response->withStringBody($ret);
+            if($ret){
+                $this->response = $this->response->withStringBody($ret);
+            }
             return $this->response;
         }
         
 
     }
-    public function getWikiPages(){
+    public function getWikiPages():Response{
         $wikiPages = $this->WikiPages->find('all');
         $aRet = [];
         foreach($wikiPages as $wikiPage){
-            $aRet[] = 
-            [
-                'id' => $wikiPage->id,
-                'title' => $wikiPage->title,
-                'text' => $wikiPage->wiki_text
+            if($wikiPage instanceof EntityInterface){
+                $aRet[] = 
+                [
+                    'id' => $wikiPage->get('id'),
+                    'title' => $wikiPage->get('title'),
+                    'text' => $wikiPage->get('wiki_text')
 
-            ];
+                ];
+            } else {
+                $aRet[] = 
+                [
+                    'id' => $wikiPage['id'],
+                    'title' => $wikiPage['title'],
+                    'text' => $wikiPage['wiki_text']
+
+                ];
+            }
         }
         $sRet = json_encode($aRet);
-        $this->response = $this->response->withStringBody($sRet);
+        if($sRet){
+            $this->response = $this->response->withStringBody($sRet);
+        }
         return $this->response;
     }
-    public function updateWikiPage(){
+    public function updateWikiPage():Response{
         $id = $this->request->getParam('id');
         $sData = $this->request->getData();
         if(is_string($sData)){
@@ -86,19 +112,21 @@ class WikiPagesController extends AppController{
         }
         try{
             $wikiPage = $this->WikiPages->get($id);
-            $wikiPage->title = $aData['title'];
-            $wikiPage->wiki_text = $aData['text'];
+            $wikiPage->set('title',$aData['title']);
+            $wikiPage->set('wiki_text',$aData['text']);
             if($this->WikiPages->save($wikiPage)){
-                $this->response = $this->response->withStringBody(
-                    json_encode(
-                        [
-                            'id' => $wikiPage->id,
-                            'title' => $wikiPage->title,
-                            'text' => $wikiPage->wiki_text
-    
-                        ]
-                    )
-                );
+                $json = json_encode(
+                    [
+                        'id' => $wikiPage->get('id'),
+                        'title' => $wikiPage->get('title'),
+                        'text' => $wikiPage->get('wiki_text')
+
+                    ]
+                    );
+                if($json){
+                    $this->response = $this->response->withStringBody($json);
+                    return $this->response;
+                }
                 return $this->response;
             } else {
                 $this->response = $this->response->withStatus(500,'could not save data');
@@ -107,7 +135,9 @@ class WikiPagesController extends AppController{
         }catch(RecordNotFoundException $e){
             $this->response = $this->response->withStatus(404,'Product not Found');
             $ret = json_encode(['message' => 'Entity not found']);
-            $this->response = $this->response->withStringBody($ret);
+            if($ret){
+                $this->response = $this->response->withStringBody($ret);
+            }
             return $this->response;
         }
     }

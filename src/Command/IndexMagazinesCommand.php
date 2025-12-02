@@ -15,7 +15,7 @@ use Cake\Utility\Text;
  */
 class IndexMagazinesCommand extends Command
 {
-    protected $modelClass = 'Magazines';
+    protected string $modelClass = 'Magazines';
     /**
      * Hook method for defining this command's option parser.
      *
@@ -64,6 +64,9 @@ class IndexMagazinesCommand extends Command
         }
         if(empty($sFtpAddress)){
             $io->error('ftp address is not set in the settings or as argument');
+            return;
+        }
+        if(!is_string($sFtpAddress)||!is_string($sFtpUsername)||!is_string($sFtpPassword)){
             return;
         }
 
