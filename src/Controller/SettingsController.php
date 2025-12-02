@@ -1,13 +1,17 @@
 <?php
 
 namespace App\Controller;
+
+use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
+use Cake\Http\Response;
 
 class SettingsController extends AppController{
-    public function optionsRequest(){
+    public function optionsRequest():Response{
         return $this->response;
     }
-    public function getSettings(){
+    public function getSettings():Response{
+        /** @var Connection $connection */
         $connection = ConnectionManager::get('default');
         $settings = $connection->execute('
         SELECT 
@@ -57,11 +61,13 @@ class SettingsController extends AppController{
             $aRet[] = $aSetting;
         }
         $sRet = json_encode($aRet);
-        $this->response = $this->response->withStringBody($sRet);
+        if($sRet){
+            $this->response = $this->response->withStringBody($sRet);
+        }
         return $this->response;
     }
 
-    public function updateSettings(){
+    public function updateSettings():Response{
         $sData = $this->request->getData();
         if(is_string($sData)){
             $aData = json_decode($sData,true);
@@ -93,12 +99,13 @@ class SettingsController extends AppController{
             }
             
             $sSql = 'UPDATE '.$sDatabase.' SET setting_value = :value WHERE id = :id';
+            /** @var Connection $connection */
             $connection = ConnectionManager::get('default');
             //$settings = $connection->execute($sSql);
             $connection->update($sDatabase,['setting_value' => $value],['id' => $id]);
         }
         $this->response = $this->response->withStatus(201);
-        $this->response = $this->response->withStringBody(json_encode([]));
+        $this->response = $this->response->withStringBody('[]');
         return $this->response;
     }
 }

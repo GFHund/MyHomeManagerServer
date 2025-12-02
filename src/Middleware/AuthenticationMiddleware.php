@@ -10,6 +10,8 @@ use Cake\Datasource\ConnectionManager;
 use Firebase\JWT\JWT;
 use Cake\Http\Response;
 use Cake\Core\Configure;
+use Cake\Database\Connection;
+use Cake\Http\ServerRequest;
 
 class AuthenticationMiddleware implements MiddlewareInterface{
     public function process(
@@ -40,10 +42,12 @@ class AuthenticationMiddleware implements MiddlewareInterface{
                 file_put_contents(dirname(__FILE__).'/Philipp.txt',date('c').': dont found user_id'."\n",FILE_APPEND);
                 return $this->getNonAuthorisationResponse($request);
             }
+            /** @var Connection */
             $connection = ConnectionManager::get('default');
             $settings = $connection->execute('SELECT count(*) FROM Users WHERE id = :id',['id' => $aContent['user_id']]);
+            /*
             try{
-                $payload = JWT::decode($payload,$key);
+                // $payload = JWT::decode($payload,$key); @ToDo Params fixing
             }catch(RecordNotFoundException $e){
                 file_put_contents(dirname(__FILE__).'/Philipp.txt',date('c').': Record Not Found Exception'."\n",FILE_APPEND);
                 return $this->getNonAuthorisationResponse($request);
@@ -55,6 +59,7 @@ class AuthenticationMiddleware implements MiddlewareInterface{
                 file_put_contents(dirname(__FILE__).'/Philipp.txt',date('c').': Exception'."\n",FILE_APPEND);
                 return $this->getNonAuthorisationResponse($request);
             }
+                */
             
         } else {
             file_put_contents(dirname(__FILE__).'/Philipp.txt',date('c').': Authorisation Header not found'."\n",FILE_APPEND);
@@ -65,12 +70,17 @@ class AuthenticationMiddleware implements MiddlewareInterface{
         return $response;
     }
 
-    private function getNonAuthorisationResponse($request){
+    private function getNonAuthorisationResponse(ServerRequestInterface $request):ResponseInterface{
         $response = new Response(['status' => 401]);
-        return $response->cors($request)
-        ->allowOrigin(['*','http://127.0.0.1:4200','http://localhost:4200'])
-        ->allowMethods(['GET',' POST',' PUT','DELETE',' OPTIONS'])
-        ->allowHeaders(['*'])
-        ->build();
+        if($request instanceof ServerRequest){
+            return $response->cors($request)
+                ->allowOrigin(['*','http://127.0.0.1:4200','http://localhost:4200'])
+                ->allowMethods(['GET',' POST',' PUT','DELETE',' OPTIONS'])
+                ->allowHeaders(['*'])
+                ->build();
+        } else {
+            return $response;
+        }
+        
     }
 }

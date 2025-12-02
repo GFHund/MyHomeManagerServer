@@ -2,18 +2,24 @@
 
 namespace App\Controller;
 
+use App\Model\Table\ProductsTable;
+use Cake\Datasource\EntityInterface;
 use Cake\Datasource\Exception\RecordNotFoundException;
+use Cake\Http\Response;
 use Cake\Utility\Text;
 
+/**
+ * @property ProductsTable $Products
+ */
 class ProductsController extends AppController{
-    protected $modelClass = 'Products';
+    protected string $modelClass = 'Products';
 
     public function initialize():void{
         parent::initialize();
         $this->loadComponent('JwtHandle');
     }
 
-    public function productAction(){
+    public function productAction():Response{
         if($this->request->is(['get'])){
             return $this->getProducts();
         }
@@ -29,24 +35,32 @@ class ProductsController extends AppController{
         }
     }
 
-    public function getProducts():void{
+    public function getProducts():Response{
         /** @var string */
         $sProductTitle = $this->request->getQuery('productTitle','');
 
         $products = $this->Products->find('all');
-        $products->order('product_name');
+        $products->orderBy('product_name');
         if(!empty($sProductTitle)){
             $products->where(['product_name LIKE' => $sProductTitle."%"]);
         }
 
         $ret = [];
         foreach($products as $product){
-            $ret[] = ['id' => $product->id,'productName' => $product->product_name];
+            if($product instanceof EntityInterface){
+                $ret[] = ['id' => $product->get('id'),'productName' => $product->get('product_name')];
+            } else {
+                $ret[] = ['id' => $product['id'],'productName' => $product['product_name']];
+            }   
         }
-        $this->response = $this->response->withStringBody(json_encode($ret));
+        $json = json_encode($ret);
+        if($json){
+            $this->response = $this->response->withStringBody($json);
+        }
+        
         return $this->response;
     }
-    public function postProducts(){
+    public function postProducts():Response{
         $product = $this->Products->newEmptyEntity();
         $sData = $this->request->getData();
         if(is_string($sData)){
@@ -55,22 +69,23 @@ class ProductsController extends AppController{
             $aData = $sData;
         }
 
-        $product->product_name = $aData['productName'];
-        $product->id = Text::uuid();
+        $product->set('product_name', $aData['productName']);
+        $product->set('id', Text::uuid());
         if($this->Products->save($product)){
-            $this->response = $this->response->withStringBody(
-                json_encode(
-                    ['id' => $product->id,
-                    'productName' => $product->product_name]
-                )
-            );
+            $json = json_encode([
+                'id' => $product->get('id'),
+                'productName' => $product->get('product_name')
+            ]);
+            if($json){
+                $this->response = $this->response->withStringBody($json);
+            }
             return $this->response;
         }
         $this->response = $this->response->withStatus(500,'could not save data');
         return $this->response;
     }
 
-    public function productDetailAction(){
+    public function productDetailAction():Response{
         $id = $this->request->getParam('id');
         if($this->request->is(['get'])){
             return $this->getProduct($id);
@@ -85,25 +100,28 @@ class ProductsController extends AppController{
             return $this->response;
         }
     }
-    public function getProduct(string $id){
+    public function getProduct(string $id):Response{
         try{
             $product = $this->Products->get($id);
-            $this->response = $this->response->withStringBody(
-                json_encode([
-                    'id' => $product->id,
-                    'productName' => $product->product_name
-                ])
-            );
-
+            $json = json_encode([
+                    'id' => $product->get('id'),
+                    'productName' => $product->get('product_name')
+            ]);
+            if($json){
+                $this->response = $this->response->withStringBody($json);
+            }
+            
         } catch(RecordNotFoundException $e){
             $this->response = $this->response->withStatus(404,'Product not Found');
             $ret = json_encode(['message' => 'Entity not found']);
-            $this->response = $this->response->withStringBody($ret);
+            if($ret){
+                $this->response = $this->response->withStringBody($ret);
+            }
             return $this->response;
         }
         return $this->response;
     }
-    public function updateProduct(string $id){
+    public function updateProduct(string $id):Response{
         try{
             $product = $this->Products->get($id);
             $sData = $this->request->getData();
@@ -112,32 +130,41 @@ class ProductsController extends AppController{
             } else {
                 $aData = $sData;
             }
-            $product->product_name = $aData['productName'];
+            $product->set('product_name', $aData['productName']);
             $this->Products->save($product);
-            $this->response = $this->response->withStringBody(
-                json_encode([
-                    'id' => $product->id,
-                    'productName' => $product->product_name
-                ])
-            );
+            $json = json_encode([
+                    'id' => $product->get('id'),
+                    'productName' => $product->get('product_name')
+            ]);
+            if($json){
+                $this->response = $this->response->withStringBody($json);
+            }
             return $this->response;
         } catch(RecordNotFoundException $e){
             $this->response = $this->response->withStatus(404,'Product not Found');
             $ret = json_encode(['message' => 'Entity not found']);
-            $this->response = $this->response->withStringBody($ret);
+            if($ret){
+                $this->response = $this->response->withStringBody($ret);
+            }
             return $this->response;
         }
     }
-    public function deleteProduct($id){
+    public function deleteProduct(string $id):Response{
         try{
             /*toDo: Check of dependencys*/
             $product = $this->Products->get($id);
             $this->Products->delete($product);
-            return $this->response->withStringBody(json_encode(['success' => true]));
+            $json = json_encode(['success' => true]);
+            if($json){
+                $this->response = $this->response->withStringBody($json);
+            }
+            return $this->response;
         } catch(RecordNotFoundException $e){
             $this->response = $this->response->withStatus(404,'Product not Found');
             $ret = json_encode(['message' => 'Entity not found']);
-            $this->response = $this->response->withStringBody($ret);
+            if($ret){
+                $this->response = $this->response->withStringBody($ret);
+            }
             return $this->response;
         }
     }
