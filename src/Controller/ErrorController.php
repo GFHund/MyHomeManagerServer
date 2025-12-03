@@ -16,7 +16,9 @@ declare(strict_types=1);
  */
 namespace App\Controller;
 
+use Cake\Controller\Controller;
 use Cake\Event\EventInterface;
+use Cake\Http\Response;
 
 /**
  * Error Handling Controller
@@ -38,20 +40,20 @@ class ErrorController extends AppController
     /**
      * beforeFilter callback.
      *
-     * @param \Cake\Event\EventInterface $event Event.
-     * @return \Cake\Http\Response|null|void
+     * @param \Cake\Event\EventInterface<Controller> $event Event.
+     * @return void
      */
-    public function beforeFilter(EventInterface $event)
+    public function beforeFilter(EventInterface $event):void
     {
     }
 
     /**
      * beforeRender callback.
      *
-     * @param \Cake\Event\EventInterface $event Event.
-     * @return \Cake\Http\Response|null|void
+     * @param \Cake\Event\EventInterface<Controller> $event Event.
+     * @return void
      */
-    public function beforeRender(EventInterface $event)
+    public function beforeRender(EventInterface $event):void
     {
         parent::beforeRender($event);
 
@@ -61,10 +63,10 @@ class ErrorController extends AppController
     /**
      * afterFilter callback.
      *
-     * @param \Cake\Event\EventInterface $event Event.
-     * @return \Cake\Http\Response|null|void
+     * @param \Cake\Event\EventInterface<Controller> $event Event.
+     * @return void
      */
-    public function afterFilter(EventInterface $event)
+    public function afterFilter(EventInterface $event):void
     {
     }
 }

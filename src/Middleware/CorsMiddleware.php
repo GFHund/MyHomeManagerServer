@@ -2,6 +2,8 @@
 
 namespace App\Middleware;
 
+use Cake\Http\Response;
+use Cake\Http\ServerRequest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -13,11 +15,14 @@ class CorsMiddleware implements MiddlewareInterface{
         RequestHandlerInterface $handler
     ): ResponseInterface{
         $response = $handler->handle($request);
-        $response = $response->cors($request)
-        ->allowOrigin(['*','http://127.0.0.1:4200','http://localhost:4200'])
-        ->allowMethods(['GET',' POST',' PUT','DELETE',' OPTIONS'])
-        ->allowHeaders(['*'])
-        ->build();
+        if($response instanceof Response && $request instanceof ServerRequest){
+            $response = $response->cors($request)
+            ->allowOrigin(['*','http://127.0.0.1:4200','http://localhost:4200'])
+            ->allowMethods(['GET',' POST',' PUT','DELETE',' OPTIONS'])
+            ->allowHeaders(['*'])
+            ->build();
+        }
+        
         return $response;
     }
 }

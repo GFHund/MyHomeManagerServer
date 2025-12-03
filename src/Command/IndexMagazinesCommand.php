@@ -3,15 +3,17 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Model\Table\MagazinesTable;
 use Cake\Datasource\ConnectionManager;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
+use Cake\Database\Connection;
 use Cake\Utility\Text;
 
 /**
- * CreateAdminUser command.
+ * @property MagazinesTable $Magazines
  */
 class IndexMagazinesCommand extends Command
 {
@@ -47,9 +49,9 @@ class IndexMagazinesCommand extends Command
      *
      * @param \Cake\Console\Arguments $args The command arguments.
      * @param \Cake\Console\ConsoleIo $io The console io
-     * @return null|void|int The exit code or null for success
+     * @return void The exit code or null for success
      */
-    public function execute(Arguments $args, ConsoleIo $io)
+    public function execute(Arguments $args, ConsoleIo $io):void
     {
         $sFtpAddress = $args->getOption('ftp_address');
         $sFtpUsername = $args->getOption('username');
@@ -66,7 +68,7 @@ class IndexMagazinesCommand extends Command
             $io->error('ftp address is not set in the settings or as argument');
             return;
         }
-        if(!is_string($sFtpAddress)||!is_string($sFtpUsername)||!is_string($sFtpPassword)){
+        if(!is_string($sFtpAddress)||!is_string($sFtpUsername)||!is_string($sFtpPassword)|| !is_string($sFtpDirectory)){
             return;
         }
 
@@ -85,13 +87,18 @@ class IndexMagazinesCommand extends Command
                 return;
             }
             $aFiles = ftp_nlist($oFtpHandle,'.');
+            if($aFiles === false){
+                return;
+            }
             foreach($aFiles as $sFile){
-                $this->insertNotIndexedFiles($sFile,$url,$io);
+                $this->insertNotIndexedFiles($sFile,'',$io);
             }
             ftp_close($oFtpHandle);
         }
     }
+
     protected function getSetting(string $technicalName):?string{
+        /** @var Connection */
         $connection = ConnectionManager::get('default');
         $settingProperty = $connection->execute('SELECT value_type, value_id FROM settings WHERE technical_name = "'.$technicalName.'"')->fetchAll('assoc');
         if(count($settingProperty) <= 0){
@@ -104,15 +111,16 @@ class IndexMagazinesCommand extends Command
         }
         return $settingVal[0]['setting_value'];
     }
-    protected function insertNotIndexedFiles(string $sFilename,string $url,ConsoleIo $io){
+
+    protected function insertNotIndexedFiles(string $sFilename, string $url, ConsoleIo $io):void{
         $magazine = $this->Magazines->find('all')->where(['uri =' => $sFilename]);
         $numResults = $magazine->count();
         if($numResults <= 0){
             $newMagazine = $this->Magazines->newEmptyEntity();
-            $newMagazine->id = Text::uuid();
-            $newMagazine->title = $sFilename;
-            $newMagazine->uri = $url.'/index.php?ctName='.$sFilename;
-            $newMagazine->topics = '';
+            $newMagazine->set('id', Text::uuid());
+            $newMagazine->set('title', $sFilename);
+            $newMagazine->set('uri', $url.'/index.php?ctName='.$sFilename);
+            $newMagazine->set('topics', '');
             if($this->Magazines->save($newMagazine)){
                 return;
             }

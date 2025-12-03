@@ -36,6 +36,8 @@ use Cake\Routing\RouteBuilder;
  *
  * This defines the bootstrapping logic and middleware layers you
  * want to use in your application.
+ * 
+ * @extends BaseApplication<void>
  */
 class Application extends BaseApplication
 {

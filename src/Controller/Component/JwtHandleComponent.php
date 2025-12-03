@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Component;
 
+use App\Model\Entity\Users;
 use Cake\Controller\Component;
 use Cake\Controller\ComponentRegistry;
 use Firebase\JWT\JWT;
 use Cake\Datasource\Exception\RecordNotFoundException;
+use Firebase\JWT\SignatureInvalidException;
 
 /**
  * JwtHandle component
@@ -17,35 +19,35 @@ class JwtHandleComponent extends Component
     /**
      * Default configuration.
      *
-     * @var array
+     * @var array<string,mixed>
      */
     protected array $_defaultConfig = [];
 
     /**
-     * @param \App\Model\Entity\Users
+     * @param Users $oUser
      * @return string The Jwt String
      */
-    public function generateJwtToken($oUser){
+    public function generateJwtToken(Users $oUser):string{
         $key = bin2hex(random_bytes(64));
-        $oUser->jwt_key = $key;
+        $oUser->set('jwt_key', $key);
         $oUserTable = $this->getController()->getTableLocator()->get('Users');
         $oUserTable->save($oUser);
         $payload = [
             'iss' => '127.0.0.1',
-            'aud' => $oUser->user_name,
+            'aud' => $oUser->get('user_name'),
             'iat' => time(),
-            'user_id' => $oUser->id,
-            'admin' => $oUser->is_admin
+            'user_id' => $oUser->get('id'),
+            'admin' => $oUser->get('is_admin')
         ];
         $jwt = JWT::encode($payload,$key);
         return $jwt;
     }
 
     /**
-     * @param $jwt string
-     * @return array|boolean
+     * @param string $jwt
+     * @return object|false
      */
-    public function verifyJwtToken($jwt,$payload){
+    public function verifyJwtToken(string $jwt,string $payload):false|object{
         $aJwtTokenParts = explode('.',$jwt);
         if(count($aJwtTokenParts) != 3){
             return false;
@@ -58,8 +60,8 @@ class JwtHandleComponent extends Component
         try{
             $oUserTable = $this->getController()->getTableLocator()->get('Users');
             $oUser = $oUserTable->get($aContent['user_id']);
-            $sKey = $oUser->jwt_key;
-            $payload = JWT::decode($payload,$key);
+            $sKey = $oUser->get('jwt_key');
+            $payload = JWT::decode($payload,$sKey);
             return $payload;
 
         }catch(RecordNotFoundException $e){

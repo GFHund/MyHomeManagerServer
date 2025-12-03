@@ -2,15 +2,18 @@
 
 namespace App\Controller;
 
+use App\Controller\Component\MagazineIndexComponent;
 use App\Model\Table\MagazinesTable;
 use Cake\Database\Connection;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Utility\Text;
 use Cake\Datasource\ConnectionManager;
+use Cake\Datasource\EntityInterface;
 use Cake\Http\Response;
 
 /**
  * @property MagazinesTable $Magazines
+ * @property MagazineIndexComponent $MagazineIndex
  */
 class MagazinesController extends AppController{
     public function initialize():void{
@@ -28,11 +31,20 @@ class MagazinesController extends AppController{
         ]);
         $aRet = [];
         foreach($magazines as $magazine){
-            $aRet[] = [
-                'id' => $magazine->get('id'),
-                'name' => $magazine->get('title'),
-                'url' => $magazine->get('uri')
-            ];
+            if($magazine instanceof EntityInterface){
+                $aRet[] = [
+                    'id' => $magazine->get('id'),
+                    'name' => $magazine->get('title'),
+                    'url' => $magazine->get('uri')
+                ];
+            } else {
+                $aRet[] = [
+                    'id' => $magazine['id'],
+                    'name' => $magazine['title'],
+                    'url' => $magazine['uri']
+                ];
+            }
+            
         }
         $sRet = json_encode($aRet);
         if($sRet){
@@ -51,7 +63,7 @@ class MagazinesController extends AppController{
         }
         try{
             $magazine = $this->Magazines->get($id);
-            $magazine->title = $aData['name'];
+            $magazine->set('title', $aData['name']);
             //it should have a field for topics
             $this->Magazines->save($magazine);
             $aRet = [
@@ -81,7 +93,11 @@ class MagazinesController extends AppController{
         $sFtpPassword = $this->getSetting('magazine_indexer_ftp_password');
         $sFtpDirectory = $this->getSetting('magazine_indexer_ftp_directory');
         $iCountFiles = $this->MagazineIndex->indexMagazines($sFtpAddress,$sFtpUsername,$sFtpPassword,$sFtpDirectory);
-        $this->response = $this->response->withStringBody(json_encode(['read' => $iCountFiles]));
+        $json = json_encode(['read' => $iCountFiles]);
+        if($json){
+            $this->response = $this->response->withStringBody($json);
+        }
+        
         return $this->response;
     }
 
