@@ -29,6 +29,7 @@ use Cake\ORM\Locator\TableLocator;
 use Cake\Routing\Middleware\AssetMiddleware;
 use Cake\Routing\Middleware\RoutingMiddleware;
 use App\Middleware\CorsMiddleware;
+use Cake\Core\Exception\CakeException;
 use Cake\Routing\RouteBuilder;
 
 /**
@@ -51,13 +52,15 @@ class Application extends BaseApplication
         // Call parent to load bootstrap from files.
         parent::bootstrap();
 
+
+
         if (PHP_SAPI !== 'cli') {
             FactoryLocator::add(
                 'Table',
                 (new TableLocator())->allowFallbackClass(false)
             );
         }
-        $this->addPlugin('Migrations');
+
         /*
          * Only try to load DebugKit in development mode
          * Debug Kit should not be installed on a production system
@@ -67,6 +70,16 @@ class Application extends BaseApplication
         }
 
         // Load more plugins here
+        try{
+            $this->addPlugin('Migrations');
+            $this->addPlugin('Bake');
+        } catch(CakeException $e){   
+            
+        }
+        $plugins = $this->getPlugins();
+        if(!$plugins->has('Migrations')){
+            $this->addPlugin('Migrations');
+        }
     }
 
     /**
